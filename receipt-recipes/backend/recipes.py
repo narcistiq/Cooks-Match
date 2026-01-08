@@ -1,8 +1,9 @@
 import google.generativeai as genai
-from google.generativeai.types import GenerateContentResponse
 import os
-from dotenv import load_dotenv
 import csv
+import json
+from google.generativeai.types import GenerateContentResponse
+from dotenv import load_dotenv
 from pymongo import MongoClient
 from pathlib import Path
 
@@ -36,51 +37,37 @@ recipes = list(collection.find({}, {"_id": 0}))
 class GeminiClient:
     def __init__(self):
         genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-        self.model = genai.GenerativeModel(
-            "gemini-2.0-flash",
-            config={
+        self.model = genai.GenerativeModel("gemini-3-pro-preview")
+        self.context = ""
+
+    def setup(self, actualingredients: list):
+        ingredients_text = ", ".join(actualingredients)
+
+        self.context = (
+            "You have these ingredients:\n"
+            f"{ingredients_text}\n"
+        )
+
+    def ask(self) -> dict:
+        question = (
+        "Please choose at least 3 recipes that contain these items. "
+        "Make the necessary substitutions as needed. "
+        "Return ONLY valid JSON in the following format:\n\n"
+        "{ \"recipes\": [ { \"name\": \"\", \"servings\": \"\", "
+        "\"ingredients\": [], \"instructions\": [], "
+        "\"prep_time\": \"\", \"cook_time\": \"\", \"substitutions\": \"\" } ] }"
+        )
+
+        prompt = f"{self.context}\nQuestion: {question}"
+
+        response = self.model.generate_content(
+            prompt,
+            generation_config={
                 "response_mime_type": "application/json",
-                "response_schema": {
-                    "type": "object",
-                    "properties": {
-                        "recipes": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "name": {"type": "string"},
-                                    "servings": {"type": "string"},
-                                    "ingredients": {"type": "array", "items": {"type": "string"}},
-                                    "instructions": {"type": "array", "items": {"type": "string"}},
-                                    "prep_time": {"type": "string"},
-                                    "cook_time": {"type": "string"},
-                                    "substitutions": {"type": "string"}
-                                },
-                                "required": ["name", "servings", "ingredients", "instructions"]
-                            }
-                        }
-                    },
-                    "required": ["recipes"]
-                }
             },
         )
 
-    def setup(self, actualingredients: list):
-        base_prompt = "You have these recipes:\n\n"
-        base_prompt += "You have these ingredients" + actualingredients
-        recipe_texts = []
-        for doc in recipes[0]:
-            title = doc.get("title", "")
-            ingredients = doc.get("ingredients", "")
-            steps = doc.get("servings", "")
-            recipe_texts.append(f"• {title} Ingredients: {ingredients}\nServings: {steps}")
-            # print(ingredients) # debugging only
-            self.context = base_prompt + "\n".join(recipe_texts)
+        return json.loads(response.text)
 
-    def ask(self):
-        question = "Please choose at least 3 recipes that contain these items. Make the necessary substitions as needed. Ignore any words that are not abbreviated ingredients."
-        prompt = self.context + f"\n\nQuestion: {question}\nAnswer:"
-        response: GenerateContentResponse = self.model.generate_content(prompt)
-        return response
 
 

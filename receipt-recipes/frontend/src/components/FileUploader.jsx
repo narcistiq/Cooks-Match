@@ -90,12 +90,12 @@ export default function FileUploader() {
                 )}
 
                 {status === UploadStatus.SUCCESS && recipes && (
-                    <p style={{ color: '#16a34a' }} className="text-sm font-semibold mt-8">
+                    <p style={{ color: '#16a34a', textAlign: 'center'}} className="text-sm font-semibold mt-8">
                         Recipes generated successfully!
                     </p>
                 )}
                 {status === UploadStatus.ERROR && (
-                    <p style={{ color: '#ff2929ff' }} className="text-sm font-semibold mt-8">
+                    <p style={{ color: '#ff2929ff', textAlign: 'center'}} className="text-sm font-semibold mt-8">
                         Upload Failed. Please try again.
                     </p>
                 )}

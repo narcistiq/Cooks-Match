@@ -1,9 +1,8 @@
-from typing import List
-
 import easyocr
-from PIL import Image, ImageEnhance, ImageOps
 import numpy as np
 import os
+from typing import List
+from PIL import Image, ImageEnhance, ImageOps
 
 
 def is_valid_image(filepath : str):
@@ -63,21 +62,17 @@ def read_text(reader, image_path : str) -> List[str]:
     return cleaned
 
 if __name__ == "__main__":
-    print("OCR Reader launched.")
     OUTPUT_FILE = "output.txt"
 
     # Get all images in folder
     FOLDER = "uploads"    
     files = get_files(FOLDER)
-    print(str(len(files)) + " files to process.")
 
     # Check that reader can read image
     images = []
     for file in files:
         if is_valid_image(file):
             images.append(file)
-
-    print(f"{len(images)}/{len(files)} of files are images found.")
 
     # Initialize OCR reader
     READER = easyocr.Reader(['en'])

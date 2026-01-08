@@ -42,7 +42,7 @@ fastparquet==2024.11.0
 fbscribelogger==0.1.7
 flask_login==0.6.3
 flint==0.0.1
-foo==.1
+# foo==.1
 gdown==5.2.0
 gmpy2==2.2.1
 greenlet==3.2.4
